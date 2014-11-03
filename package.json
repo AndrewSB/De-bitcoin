@@ -12,7 +12,10 @@
   	"express": "4.9.4",
 	"morgan": "latest",
 	"body-parser": "latest",
-	"braintree": "latest",
-	"request": "latest"
+	"request": "latest",
+	"xml2js": "latest",
+	"mongoose": "latest",
+	"firebase": "latest",
+  "chain-node": "latest"
   }
 }

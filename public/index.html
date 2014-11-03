@@ -1,0 +1,112 @@
+<html ng-app="mainapp">
+  <head>
+    <title>DeBitcoin</title>
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href='http://fonts.googleapis.com/css?family=Josefin+Slab:300,400,600,700' rel='stylesheet' type='text/css'>
+  </head>
+
+  <body ng-controller="mainController">
+    <div class="container">
+      <div class="row header">
+        <h1>Neville's Bank Account</h1>
+      </div>
+      <div class="row bottom-content">
+        <div class="col-xs-12 semi-height">
+          <div class="inner-content">
+            <div>
+              <img src="assets/img/bitcoin.png" class="img-responsive">
+              <h5>BTC {{userData.bitcoinAmount}}</h5>
+              <h5>13FJ4H43bvVPdnFoKw2qPVY3fFzhLKpnZK</h5>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-xs-12 semi-height">
+          <div class="inner-content">
+             <table class="table table-condensed">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Datetime</th>
+                  <th>Balance ($)</th>
+                  <th>Change ($)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="balance in userData.balances | reverse | roundedChange | getDate">
+                  <td>{{$index+1}}</td>
+                  <td>{{balance.date}}</td>
+                  <td>{{balance.balance}}</td>
+                  <td ng-class="addColor(balance.increase, balance.decrease)">{{balance.change}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-md-6 col-xs-12 semi-height">
+          <div class="inner-content">
+            <table class="table table-condensed">
+             <thead>
+               <tr>
+                 <th>#</th>
+                 <th>Datetime</th>
+                 <th>Bitcoin</th>
+               </tr>
+             </thead>
+             <tbody>
+               <tr ng-repeat="bitcoin in userData.bitcoins | reverse | getDate">
+                 <td>{{$index+1}}</td>
+                 <td>{{bitcoin.date}}</td>
+                 <td>{{bitcoin.bitcoin}} BTC</td>
+               </tr>
+             </tbody>
+           </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="assets/js/angular.min.js"></script>
+    <script src="assets/js/firebase.js"></script>
+    <script src="assets/js/angularfire.min.js"></script>
+    <script>
+      var app = angular.module("mainapp", ['firebase']);
+      app.controller("mainController", function($window, $scope, $firebase){
+	      var fireRef = new Firebase("https://debitcoin.firebaseio.com/");
+        var sync = $firebase(fireRef);
+        $scope.userData = sync.$asObject();
+        $scope.addColor = function(i, d){
+          if (i) return "increase";
+          if (d) return "decrease";
+        }
+      });
+      app.filter('reverse', function() {
+        return function(items) {
+          return items.slice().reverse();
+        };
+      });
+      app.filter('roundedChange', function() {
+        return function(items) {
+          for (var i = 0; i < items.length - 1; i++) {
+            items[i].change = -1 *(Math.round((items[i + 1].balance - items[i].balance) * 100) / 100);
+          }
+          items[items.length - 1].change = items[items.length - 1].balance;
+          for (var i = 0; i < items.length; i++) {
+            items[i].increase = items[i].change > 0;
+            items[i].decrease = items[i].change < 0;
+          }
+          return items;
+        };
+      });
+      app.filter('getDate', function(){
+        return function(items) {
+          for (var i = 0; i < items.length; i++) {
+            var timestamp = items[i]._id.toString().substring(0,8);
+            items[i].date = new Date( parseInt( timestamp, 16 ) * 1000 );
+          }
+          return items;
+        }
+      });
+    </script>
+  </body>
+</html>
